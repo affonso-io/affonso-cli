@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import { CLIENT_ID } from "../auth/oauth.js";
 import { clearAuth, loadAuth } from "../auth/storage.js";
 import { resolveBaseUrl } from "../auth/resolve.js";
 import { handleError } from "../lib/errors.js";
@@ -23,7 +24,7 @@ export function registerLogoutCommand(program: Command): void {
 							headers: { "Content-Type": "application/x-www-form-urlencoded" },
 							body: new URLSearchParams({
 								token: auth.access_token,
-								client_id: "affonso-cli",
+								client_id: CLIENT_ID,
 							}),
 						});
 					} catch {

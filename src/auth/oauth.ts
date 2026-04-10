@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import http from "node:http";
 import { saveAuth } from "./storage.js";
 
-const CLIENT_ID = "affonso-cli";
+export const CLIENT_ID = "d4e5f6a7-b8c9-4d0e-a1f2-b3c4d5e6f7a8";
 const SCOPES = "read write";
 const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
 
