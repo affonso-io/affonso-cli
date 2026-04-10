@@ -4,6 +4,16 @@ import { saveAuth } from "./storage.js";
 
 const CLIENT_ID = "affonso-cli";
 const SCOPES = "read write";
+const LOGIN_TIMEOUT_MS = 5 * 60 * 1000;
+
+function escapeHtml(s: string): string {
+	return s
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;")
+		.replace(/'/g, "&#39;");
+}
 
 function base64url(buffer: Buffer): string {
 	return buffer.toString("base64url");
@@ -129,11 +139,10 @@ export async function login(baseUrl: string): Promise<void> {
 			}
 		});
 
-		// Timeout after 5 minutes
 		setTimeout(() => {
 			server.close();
 			reject(new Error("Login timed out after 5 minutes"));
-		}, 5 * 60 * 1000);
+		}, LOGIN_TIMEOUT_MS);
 	});
 }
 
@@ -188,6 +197,6 @@ function successPage(): string {
 function errorPage(message: string): string {
 	return `<!DOCTYPE html><html><body style="font-family:system-ui;text-align:center;padding:60px">
 <h1>Authentication Error</h1>
-<p>${message}</p>
+<p>${escapeHtml(message)}</p>
 </body></html>`;
 }

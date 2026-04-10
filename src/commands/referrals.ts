@@ -1,11 +1,8 @@
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output, outputSuccess } from "../output/format.js";
-
-function opts(cmd: Command) {
-	return { ...cmd.parent?.parent?.opts(), ...cmd.opts() };
-}
 
 export function registerReferralCommands(program: Command): void {
 	const referrals = program.command("referrals").description("Manage referrals");
@@ -104,11 +101,11 @@ export function registerReferralCommands(program: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.email) params.email = o.email;
-				if (o.status) params.status = o.status;
-				if (o.subscriptionId) params.subscription_id = o.subscriptionId;
-				if (o.customerId) params.customer_id = o.customerId;
-				if (o.name) params.name = o.name;
+				if (o.email !== undefined) params.email = o.email;
+				if (o.status !== undefined) params.status = o.status;
+				if (o.subscriptionId !== undefined) params.subscription_id = o.subscriptionId;
+				if (o.customerId !== undefined) params.customer_id = o.customerId;
+				if (o.name !== undefined) params.name = o.name;
 				const result = await client.referrals.update(id, params);
 				output(result, o);
 			} catch (err) {

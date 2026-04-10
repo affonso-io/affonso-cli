@@ -1,18 +1,8 @@
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output, outputSuccess } from "../output/format.js";
-
-function opts(cmd: Command) {
-	// Walk up to collect global opts from any nesting depth
-	let current: Command | null = cmd;
-	let merged = {};
-	while (current) {
-		merged = { ...current.opts(), ...merged };
-		current = current.parent;
-	}
-	return merged as Record<string, string | boolean | undefined>;
-}
 
 export function registerProgramCommands(program: Command): void {
 	const prog = program.command("program").description("Manage program settings");
@@ -51,12 +41,12 @@ export function registerProgramCommands(program: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.name) params.name = o.name;
-				if (o.tagline) params.tagline = o.tagline;
-				if (o.category) params.category = o.category;
-				if (o.description) params.description = o.description;
-				if (o.websiteUrl) params.website_url = o.websiteUrl;
-				if (o.logoUrl) params.logo_url = o.logoUrl;
+				if (o.name !== undefined) params.name = o.name;
+				if (o.tagline !== undefined) params.tagline = o.tagline;
+				if (o.category !== undefined) params.category = o.category;
+				if (o.description !== undefined) params.description = o.description;
+				if (o.websiteUrl !== undefined) params.website_url = o.websiteUrl;
+				if (o.logoUrl !== undefined) params.logo_url = o.logoUrl;
 				if (o.autoApprove !== undefined) params.auto_approve = o.autoApprove;
 				if (o.affiliateLinksEnabled !== undefined)
 					params.affiliate_links_enabled = o.affiliateLinksEnabled;
@@ -119,14 +109,14 @@ function registerPaymentTerms(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.commissionType) params.commission_type = o.commissionType;
-				if (o.commissionRate) params.commission_rate = Number(o.commissionRate);
-				if (o.commissionDuration) params.commission_duration = o.commissionDuration;
-				if (o.commissionDurationValue)
+				if (o.commissionType !== undefined) params.commission_type = o.commissionType;
+				if (o.commissionRate !== undefined) params.commission_rate = Number(o.commissionRate);
+				if (o.commissionDuration !== undefined) params.commission_duration = o.commissionDuration;
+				if (o.commissionDurationValue !== undefined)
 					params.commission_duration_value = Number(o.commissionDurationValue);
-				if (o.paymentThreshold) params.payment_threshold = Number(o.paymentThreshold);
-				if (o.paymentFrequency) params.payment_frequency = o.paymentFrequency;
-				if (o.cookieLifetime) params.cookie_lifetime = Number(o.cookieLifetime);
+				if (o.paymentThreshold !== undefined) params.payment_threshold = Number(o.paymentThreshold);
+				if (o.paymentFrequency !== undefined) params.payment_frequency = o.paymentFrequency;
+				if (o.cookieLifetime !== undefined) params.cookie_lifetime = Number(o.cookieLifetime);
 				if (o.autoPayout !== undefined) params.auto_payout = o.autoPayout;
 				if (o.invoiceRequired !== undefined) params.invoice_required = o.invoiceRequired;
 				const result = await client.program.paymentTerms.update(params);
@@ -168,9 +158,9 @@ function registerTracking(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.defaultReferralParameter)
+				if (o.defaultReferralParameter !== undefined)
 					params.default_referral_parameter = o.defaultReferralParameter;
-				if (o.enabledReferralParameters)
+				if (o.enabledReferralParameters !== undefined)
 					params.enabled_referral_parameters = (o.enabledReferralParameters as string).split(",");
 				if (o.trackEmail !== undefined) params.track_email = o.trackEmail;
 				if (o.trackName !== undefined) params.track_name = o.trackName;
@@ -227,33 +217,21 @@ function registerRestrictions(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				const boolFields = [
-					"websites",
-					"socialMarketing",
-					"organicSocial",
-					"emailMarketing",
-					"paidAds",
-					"contentMarketing",
-					"couponSites",
-					"reviewSites",
-					"incentivizedTraffic",
-					"trademarkBidding",
+				const fieldMap: [string, string][] = [
+					["websites", "websites"],
+					["socialMarketing", "social_marketing"],
+					["organicSocial", "organic_social"],
+					["emailMarketing", "email_marketing"],
+					["paidAds", "paid_ads"],
+					["contentMarketing", "content_marketing"],
+					["couponSites", "coupon_sites"],
+					["reviewSites", "review_sites"],
+					["incentivizedTraffic", "incentivized_traffic"],
+					["trademarkBidding", "trademark_bidding"],
 				];
-				const snakeFields = [
-					"websites",
-					"social_marketing",
-					"organic_social",
-					"email_marketing",
-					"paid_ads",
-					"content_marketing",
-					"coupon_sites",
-					"review_sites",
-					"incentivized_traffic",
-					"trademark_bidding",
-				];
-				for (let i = 0; i < boolFields.length; i++) {
-					const val = o[boolFields[i]];
-					if (val !== undefined) params[snakeFields[i]] = val;
+				for (const [camel, snake] of fieldMap) {
+					const val = o[camel];
+					if (val !== undefined) params[snake] = val;
 				}
 				const result = await client.program.restrictions.update(params);
 				output(result, o);
@@ -292,10 +270,10 @@ function registerFraudRules(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.selfReferral) params.self_referral = o.selfReferral;
-				if (o.duplicateIp) params.duplicate_ip = o.duplicateIp;
-				if (o.vpnProxy) params.vpn_proxy = o.vpnProxy;
-				if (o.suspiciousConversion) params.suspicious_conversion = o.suspiciousConversion;
+				if (o.selfReferral !== undefined) params.self_referral = o.selfReferral;
+				if (o.duplicateIp !== undefined) params.duplicate_ip = o.duplicateIp;
+				if (o.vpnProxy !== undefined) params.vpn_proxy = o.vpnProxy;
+				if (o.suspiciousConversion !== undefined) params.suspicious_conversion = o.suspiciousConversion;
 				const result = await client.program.fraudRules.update(params);
 				output(result, o);
 			} catch (err) {
@@ -340,13 +318,13 @@ function registerPortal(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.primaryColor) params.primary_color = o.primaryColor;
-				if (o.accentColor) params.accent_color = o.accentColor;
-				if (o.logoUrl) params.logo_url = o.logoUrl;
-				if (o.faviconUrl) params.favicon_url = o.faviconUrl;
-				if (o.customDomain) params.custom_domain = o.customDomain;
-				if (o.termsUrl) params.terms_url = o.termsUrl;
-				if (o.privacyUrl) params.privacy_url = o.privacyUrl;
+				if (o.primaryColor !== undefined) params.primary_color = o.primaryColor;
+				if (o.accentColor !== undefined) params.accent_color = o.accentColor;
+				if (o.logoUrl !== undefined) params.logo_url = o.logoUrl;
+				if (o.faviconUrl !== undefined) params.favicon_url = o.faviconUrl;
+				if (o.customDomain !== undefined) params.custom_domain = o.customDomain;
+				if (o.termsUrl !== undefined) params.terms_url = o.termsUrl;
+				if (o.privacyUrl !== undefined) params.privacy_url = o.privacyUrl;
 				if (o.onboardingEnabled !== undefined)
 					params.onboarding_enabled = o.onboardingEnabled;
 				if (o.resourcesEnabled !== undefined)
@@ -387,7 +365,7 @@ function registerNotifications(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.subject) params.subject = o.subject;
+				if (o.subject !== undefined) params.subject = o.subject;
 				if (o.enabled !== undefined) params.enabled = o.enabled;
 				const result = await client.program.notifications.update(id, params);
 				output(result, o);
@@ -467,7 +445,7 @@ function registerGroups(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.name) params.name = o.name;
+				if (o.name !== undefined) params.name = o.name;
 				if (o.description !== undefined) params.description = o.description;
 				if (o.isDefault !== undefined) params.is_default = o.isDefault;
 				const result = await client.program.groups.update(id, params);
@@ -576,13 +554,13 @@ function registerCreatives(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.name) params.name = o.name;
-				if (o.type) params.type = o.type;
+				if (o.name !== undefined) params.name = o.name;
+				if (o.type !== undefined) params.type = o.type;
 				if (o.description !== undefined) params.description = o.description;
-				if (o.url) params.url = o.url;
-				if (o.fileUrl) params.file_url = o.fileUrl;
-				if (o.width) params.width = Number(o.width);
-				if (o.height) params.height = Number(o.height);
+				if (o.url !== undefined) params.url = o.url;
+				if (o.fileUrl !== undefined) params.file_url = o.fileUrl;
+				if (o.width !== undefined) params.width = Number(o.width);
+				if (o.height !== undefined) params.height = Number(o.height);
 				const result = await client.program.creatives.update(id, params);
 				output(result, o);
 			} catch (err) {

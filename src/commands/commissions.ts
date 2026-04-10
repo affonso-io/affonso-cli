@@ -1,11 +1,8 @@
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output, outputSuccess } from "../output/format.js";
-
-function opts(cmd: Command) {
-	return { ...cmd.parent?.parent?.opts(), ...cmd.opts() };
-}
 
 export function registerCommissionCommands(program: Command): void {
 	const commissions = program.command("commissions").description("Manage commissions");
@@ -120,13 +117,13 @@ export function registerCommissionCommands(program: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.status) params.status = o.status;
-				if (o.salesStatus) params.sales_status = o.salesStatus;
-				if (o.holdPeriodDays) params.hold_period_days = Number(o.holdPeriodDays);
-				if (o.saleAmount) params.sale_amount = Number(o.saleAmount);
-				if (o.saleAmountCurrency) params.sale_amount_currency = o.saleAmountCurrency;
-				if (o.commissionAmount) params.commission_amount = Number(o.commissionAmount);
-				if (o.commissionCurrency) params.commission_currency = o.commissionCurrency;
+				if (o.status !== undefined) params.status = o.status;
+				if (o.salesStatus !== undefined) params.sales_status = o.salesStatus;
+				if (o.holdPeriodDays !== undefined) params.hold_period_days = Number(o.holdPeriodDays);
+				if (o.saleAmount !== undefined) params.sale_amount = Number(o.saleAmount);
+				if (o.saleAmountCurrency !== undefined) params.sale_amount_currency = o.saleAmountCurrency;
+				if (o.commissionAmount !== undefined) params.commission_amount = Number(o.commissionAmount);
+				if (o.commissionCurrency !== undefined) params.commission_currency = o.commissionCurrency;
 				const result = await client.commissions.update(id, params);
 				output(result, o);
 			} catch (err) {

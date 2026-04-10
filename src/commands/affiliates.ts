@@ -1,11 +1,8 @@
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output, outputSuccess } from "../output/format.js";
-
-function opts(cmd: Command) {
-	return { ...cmd.parent?.parent?.opts(), ...cmd.opts() };
-}
 
 export function registerAffiliateCommands(program: Command): void {
 	const affiliates = program.command("affiliates").description("Manage affiliates");
@@ -109,13 +106,13 @@ export function registerAffiliateCommands(program: Command): void {
 			try {
 				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
-				if (o.name) params.name = o.name;
-				if (o.email) params.email = o.email;
-				if (o.status) params.status = o.status;
-				if (o.groupId) params.group_id = o.groupId;
-				if (o.companyName) params.company_name = o.companyName;
-				if (o.countryCode) params.country_code = o.countryCode;
-				if (o.externalUserId) params.external_user_id = o.externalUserId;
+				if (o.name !== undefined) params.name = o.name;
+				if (o.email !== undefined) params.email = o.email;
+				if (o.status !== undefined) params.status = o.status;
+				if (o.groupId !== undefined) params.group_id = o.groupId;
+				if (o.companyName !== undefined) params.company_name = o.companyName;
+				if (o.countryCode !== undefined) params.country_code = o.countryCode;
+				if (o.externalUserId !== undefined) params.external_user_id = o.externalUserId;
 				if (o.onboardingCompleted) params.onboarding_completed = true;
 				const result = await client.affiliates.update(id, params);
 				output(result, o);
