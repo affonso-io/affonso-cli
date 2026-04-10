@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Command line interface for the Affonso affiliate marketing platform",
   "bin": {
-    "affonso": "./dist/cli.js"
+    "affonso": "./dist/index.js"
   },
   "files": [
     "dist"
