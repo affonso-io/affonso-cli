@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { loadConfig, saveConfig } from "../auth/storage.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 
 const VALID_KEYS = ["api-key", "base-url"] as const;
 type ConfigKey = (typeof VALID_KEYS)[number];
@@ -17,7 +18,7 @@ export function registerConfigCommands(program: Command): void {
 		.command("get <key>")
 		.description("Get a config value (api-key, base-url)")
 		.action(async function (this: Command, key: string) {
-			const o = { ...this.parent?.parent?.opts(), ...this.opts() };
+			const o = opts(this);
 			try {
 				if (!VALID_KEYS.includes(key as ConfigKey)) {
 					console.error(`Unknown config key: ${key}. Valid keys: ${VALID_KEYS.join(", ")}`);
@@ -48,7 +49,7 @@ export function registerConfigCommands(program: Command): void {
 		.command("set <key> <value>")
 		.description("Set a config value (api-key, base-url)")
 		.action(async function (this: Command, key: string, value: string) {
-			const o = { ...this.parent?.parent?.opts(), ...this.opts() };
+			const o = opts(this);
 			try {
 				if (!VALID_KEYS.includes(key as ConfigKey)) {
 					console.error(`Unknown config key: ${key}. Valid keys: ${VALID_KEYS.join(", ")}`);

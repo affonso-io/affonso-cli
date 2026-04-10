@@ -1,11 +1,8 @@
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output, outputSuccess } from "../output/format.js";
-
-function opts(cmd: Command) {
-	return { ...cmd.parent?.parent?.opts(), ...cmd.opts() };
-}
 
 export function registerCouponCommands(program: Command): void {
 	const coupons = program.command("coupons").description("Manage coupons");

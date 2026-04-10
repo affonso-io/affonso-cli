@@ -20,9 +20,7 @@ export interface StoredConfig {
 }
 
 function ensureDir(): void {
-	if (!fs.existsSync(CONFIG_DIR)) {
-		fs.mkdirSync(CONFIG_DIR, { recursive: true });
-	}
+	fs.mkdirSync(CONFIG_DIR, { recursive: true });
 }
 
 export function loadAuth(): StoredAuth | null {
@@ -30,7 +28,10 @@ export function loadAuth(): StoredAuth | null {
 		if (!fs.existsSync(AUTH_FILE)) return null;
 		const raw = fs.readFileSync(AUTH_FILE, "utf-8");
 		return JSON.parse(raw) as StoredAuth;
-	} catch {
+	} catch (err) {
+		if (err instanceof SyntaxError) {
+			console.error(`Warning: ${AUTH_FILE} contains invalid JSON and was ignored.`);
+		}
 		return null;
 	}
 }
@@ -44,11 +45,9 @@ export function saveAuth(auth: StoredAuth): void {
 
 export function clearAuth(): void {
 	try {
-		if (fs.existsSync(AUTH_FILE)) {
-			fs.unlinkSync(AUTH_FILE);
-		}
-	} catch {
-		// ignore
+		fs.unlinkSync(AUTH_FILE);
+	} catch (err: unknown) {
+		if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
 	}
 }
 
@@ -57,7 +56,10 @@ export function loadConfig(): StoredConfig {
 		if (!fs.existsSync(CONFIG_FILE)) return {};
 		const raw = fs.readFileSync(CONFIG_FILE, "utf-8");
 		return JSON.parse(raw) as StoredConfig;
-	} catch {
+	} catch (err) {
+		if (err instanceof SyntaxError) {
+			console.error(`Warning: ${CONFIG_FILE} contains invalid JSON and was ignored.`);
+		}
 		return {};
 	}
 }

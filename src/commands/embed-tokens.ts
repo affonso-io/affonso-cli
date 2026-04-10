@@ -1,11 +1,8 @@
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output } from "../output/format.js";
-
-function opts(cmd: Command) {
-	return { ...cmd.parent?.parent?.opts(), ...cmd.opts() };
-}
 
 export function registerEmbedTokenCommands(program: Command): void {
 	const embedTokens = program.command("embed-tokens").description("Generate embed tokens");

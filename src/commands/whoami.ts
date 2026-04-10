@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { resolveAuth } from "../auth/resolve.js";
 import { loadAuth } from "../auth/storage.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 import { output } from "../output/format.js";
 
 export function registerWhoamiCommand(program: Command): void {
@@ -9,7 +10,7 @@ export function registerWhoamiCommand(program: Command): void {
 		.command("whoami")
 		.description("Show current authentication status")
 		.action(async function (this: Command) {
-			const o = { ...this.parent?.opts(), ...this.opts() };
+			const o = opts(this);
 			try {
 				const auth = resolveAuth(o.apiKey);
 

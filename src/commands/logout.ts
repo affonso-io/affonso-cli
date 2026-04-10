@@ -2,13 +2,14 @@ import type { Command } from "commander";
 import { clearAuth, loadAuth } from "../auth/storage.js";
 import { resolveBaseUrl } from "../auth/resolve.js";
 import { handleError } from "../lib/errors.js";
+import { opts } from "../lib/opts.js";
 
 export function registerLogoutCommand(program: Command): void {
 	program
 		.command("logout")
 		.description("Log out and remove stored credentials")
 		.action(async function (this: Command) {
-			const o = { ...this.parent?.opts(), ...this.opts() };
+			const o = opts(this);
 			try {
 				const auth = loadAuth();
 

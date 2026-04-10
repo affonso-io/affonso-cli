@@ -19,6 +19,9 @@ export async function getClient(opts: ClientOpts): Promise<Affonso> {
 			const refreshed = await refreshToken(baseUrl, stored.refresh_token);
 			if (refreshed) {
 				auth = resolveAuth(opts.apiKey);
+			} else {
+				console.error("Error: Session expired and token refresh failed. Run `affonso login` to re-authenticate.");
+				process.exit(1);
 			}
 		}
 	}
