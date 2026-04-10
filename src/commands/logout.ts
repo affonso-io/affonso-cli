@@ -1,0 +1,39 @@
+import type { Command } from "commander";
+import { clearAuth, loadAuth } from "../auth/storage.js";
+import { resolveBaseUrl } from "../auth/resolve.js";
+import { handleError } from "../lib/errors.js";
+
+export function registerLogoutCommand(program: Command): void {
+	program
+		.command("logout")
+		.description("Log out and remove stored credentials")
+		.action(async function (this: Command) {
+			const o = { ...this.parent?.opts(), ...this.opts() };
+			try {
+				const auth = loadAuth();
+
+				// Try to revoke token on the server
+				if (auth?.access_token) {
+					const baseUrl = resolveBaseUrl(o.baseUrl);
+					const issuer = baseUrl.replace(/\/v1\/?$/, "");
+					try {
+						await fetch(`${issuer}/oauth/revoke`, {
+							method: "POST",
+							headers: { "Content-Type": "application/x-www-form-urlencoded" },
+							body: new URLSearchParams({
+								token: auth.access_token,
+								client_id: "affonso-cli",
+							}),
+						});
+					} catch {
+						// Revocation is best-effort
+					}
+				}
+
+				clearAuth();
+				console.log("Logged out.");
+			} catch (err) {
+				handleError(err, o.json);
+			}
+		});
+}
