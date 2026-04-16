@@ -32,8 +32,7 @@ export function registerProgramCommands(program: Command): void {
 		.option("--description <text>", "Description")
 		.option("--website-url <url>", "Website URL")
 		.option("--logo-url <url>", "Logo URL")
-		.option("--auto-approve", "Enable auto-approve")
-		.option("--no-auto-approve", "Disable auto-approve")
+		.option("--access-mode <mode>", "Access mode: PUBLIC, PRIVATE, or INVITE")
 		.option("--affiliate-links-enabled", "Enable affiliate links")
 		.option("--no-affiliate-links-enabled", "Disable affiliate links")
 		.action(async function (this: Command) {
@@ -47,7 +46,7 @@ export function registerProgramCommands(program: Command): void {
 				if (o.description !== undefined) params.description = o.description;
 				if (o.websiteUrl !== undefined) params.website_url = o.websiteUrl;
 				if (o.logoUrl !== undefined) params.logo_url = o.logoUrl;
-				if (o.autoApprove !== undefined) params.auto_approve = o.autoApprove;
+				if (o.accessMode !== undefined) params.access_mode = o.accessMode;
 				if (o.affiliateLinksEnabled !== undefined)
 					params.affiliate_links_enabled = o.affiliateLinksEnabled;
 				const result = await client.program.update(params);
