@@ -1,7 +1,7 @@
 import type { Command } from "commander";
 import { CLIENT_ID } from "../auth/oauth.js";
-import { clearAuth, loadAuth } from "../auth/storage.js";
 import { resolveBaseUrl } from "../auth/resolve.js";
+import { clearAuth, loadAuth } from "../auth/storage.js";
 import { handleError } from "../lib/errors.js";
 import { opts } from "../lib/opts.js";
 

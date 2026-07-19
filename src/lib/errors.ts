@@ -39,7 +39,7 @@ export function handleError(err: unknown, json?: boolean): never {
 		}
 
 		if (err.status === 401) {
-			console.error('\nRun `affonso login` or set AFFONSO_API_KEY.');
+			console.error("\nRun `affonso login` or set AFFONSO_API_KEY.");
 		}
 
 		process.exit(1);
@@ -47,7 +47,13 @@ export function handleError(err: unknown, json?: boolean): never {
 
 	if (err instanceof Error) {
 		if (json) {
-			console.error(JSON.stringify({ success: false, error: { code: "CLI_ERROR", message: err.message } }, null, 2));
+			console.error(
+				JSON.stringify(
+					{ success: false, error: { code: "CLI_ERROR", message: err.message } },
+					null,
+					2,
+				),
+			);
 		} else {
 			console.error(`Error: ${err.message}`);
 		}

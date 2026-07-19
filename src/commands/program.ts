@@ -272,7 +272,8 @@ function registerFraudRules(prog: Command): void {
 				if (o.selfReferral !== undefined) params.self_referral = o.selfReferral;
 				if (o.duplicateIp !== undefined) params.duplicate_ip = o.duplicateIp;
 				if (o.vpnProxy !== undefined) params.vpn_proxy = o.vpnProxy;
-				if (o.suspiciousConversion !== undefined) params.suspicious_conversion = o.suspiciousConversion;
+				if (o.suspiciousConversion !== undefined)
+					params.suspicious_conversion = o.suspiciousConversion;
 				const result = await client.program.fraudRules.update(params);
 				output(result, o);
 			} catch (err) {
@@ -324,10 +325,8 @@ function registerPortal(prog: Command): void {
 				if (o.customDomain !== undefined) params.custom_domain = o.customDomain;
 				if (o.termsUrl !== undefined) params.terms_url = o.termsUrl;
 				if (o.privacyUrl !== undefined) params.privacy_url = o.privacyUrl;
-				if (o.onboardingEnabled !== undefined)
-					params.onboarding_enabled = o.onboardingEnabled;
-				if (o.resourcesEnabled !== undefined)
-					params.resources_enabled = o.resourcesEnabled;
+				if (o.onboardingEnabled !== undefined) params.onboarding_enabled = o.onboardingEnabled;
+				if (o.resourcesEnabled !== undefined) params.resources_enabled = o.resourcesEnabled;
 				const result = await client.program.portal.update(params);
 				output(result, o);
 			} catch (err) {
@@ -388,7 +387,14 @@ function registerGroups(prog: Command): void {
 				const result = await client.program.groups.list({
 					expand: o.expand as string | undefined,
 				});
-				output(result, o, ["id", "name", "description", "is_default", "affiliate_count", "created_at"]);
+				output(result, o, [
+					"id",
+					"name",
+					"description",
+					"is_default",
+					"affiliate_count",
+					"created_at",
+				]);
 			} catch (err) {
 				handleError(err, o.json);
 			}

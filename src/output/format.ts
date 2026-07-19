@@ -22,9 +22,7 @@ export function output(result: unknown, opts: OutputOptions, columns?: string[])
 		console.log(formatTable(result.data, columns));
 		if (result.pagination) {
 			const p = result.pagination;
-			console.log(
-				`\nPage ${p.page}/${p.total_pages} (${p.total} total)`,
-			);
+			console.log(`\nPage ${p.page}/${p.total_pages} (${p.total} total)`);
 		}
 		return;
 	}

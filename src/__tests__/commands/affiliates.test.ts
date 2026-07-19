@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Test the CLI commands by setting env and mocking the SDK at the package level
 const { mockList, mockRetrieve, mockCreate, mockUpdate, mockDel } = vi.hoisted(() => {
@@ -23,9 +23,21 @@ vi.mock("@affonso/sdk", () => {
 			update: mockUpdate,
 			del: mockDel,
 		};
-		referrals = { list: vi.fn(), retrieve: vi.fn(), create: vi.fn(), update: vi.fn(), del: vi.fn() };
+		referrals = {
+			list: vi.fn(),
+			retrieve: vi.fn(),
+			create: vi.fn(),
+			update: vi.fn(),
+			del: vi.fn(),
+		};
 		clicks = { create: vi.fn() };
-		commissions = { list: vi.fn(), retrieve: vi.fn(), create: vi.fn(), update: vi.fn(), del: vi.fn() };
+		commissions = {
+			list: vi.fn(),
+			retrieve: vi.fn(),
+			create: vi.fn(),
+			update: vi.fn(),
+			del: vi.fn(),
+		};
 		coupons = { list: vi.fn(), retrieve: vi.fn(), create: vi.fn(), del: vi.fn() };
 		payouts = { list: vi.fn(), retrieve: vi.fn(), update: vi.fn() };
 		program = {
@@ -35,7 +47,13 @@ vi.mock("@affonso/sdk", () => {
 			tracking: { retrieve: vi.fn(), update: vi.fn() },
 			restrictions: { retrieve: vi.fn(), update: vi.fn() },
 			groups: { list: vi.fn(), retrieve: vi.fn(), create: vi.fn(), update: vi.fn(), del: vi.fn() },
-			creatives: { list: vi.fn(), retrieve: vi.fn(), create: vi.fn(), update: vi.fn(), del: vi.fn() },
+			creatives: {
+				list: vi.fn(),
+				retrieve: vi.fn(),
+				create: vi.fn(),
+				update: vi.fn(),
+				del: vi.fn(),
+			},
 			notifications: { list: vi.fn(), update: vi.fn() },
 			portal: { retrieve: vi.fn(), update: vi.fn() },
 			fraudRules: { retrieve: vi.fn(), update: vi.fn() },
@@ -52,6 +70,7 @@ vi.mock("open", () => ({ default: vi.fn() }));
 import { createProgram } from "../../cli.js";
 
 describe("affiliates commands", () => {
+	const originalApiKey = process.env.AFFONSO_API_KEY;
 	let consoleSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
@@ -88,7 +107,11 @@ describe("affiliates commands", () => {
 	});
 
 	afterEach(() => {
-		delete process.env.AFFONSO_API_KEY;
+		if (originalApiKey === undefined) {
+			Reflect.deleteProperty(process.env, "AFFONSO_API_KEY");
+		} else {
+			process.env.AFFONSO_API_KEY = originalApiKey;
+		}
 	});
 
 	it("affiliates list outputs JSON", async () => {

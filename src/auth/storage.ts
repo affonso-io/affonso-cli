@@ -1,6 +1,6 @@
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
 
 const CONFIG_DIR = path.join(os.homedir(), ".config", "affonso");
 const AUTH_FILE = path.join(CONFIG_DIR, "auth.json");

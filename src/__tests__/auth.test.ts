@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import fs from "node:fs";
-import path from "node:path";
 import os from "node:os";
+import path from "node:path";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock fs to avoid touching real filesystem
 vi.mock("node:fs");
@@ -83,14 +83,20 @@ describe("auth/storage", () => {
 });
 
 describe("auth/resolve", () => {
+	const originalApiKey = process.env.AFFONSO_API_KEY;
+
 	beforeEach(() => {
 		vi.resetModules();
-		delete process.env.AFFONSO_API_KEY;
+		Reflect.deleteProperty(process.env, "AFFONSO_API_KEY");
 	});
 
 	afterEach(() => {
 		vi.restoreAllMocks();
-		delete process.env.AFFONSO_API_KEY;
+		if (originalApiKey === undefined) {
+			Reflect.deleteProperty(process.env, "AFFONSO_API_KEY");
+		} else {
+			process.env.AFFONSO_API_KEY = originalApiKey;
+		}
 	});
 
 	it("resolves from flag first", async () => {

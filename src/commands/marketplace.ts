@@ -1,9 +1,9 @@
-import type { Command } from "commander";
 import { Affonso } from "@affonso/sdk";
+import type { Command } from "commander";
+import { resolveBaseUrl } from "../auth/resolve.js";
 import { handleError } from "../lib/errors.js";
 import { opts } from "../lib/opts.js";
 import { output } from "../output/format.js";
-import { resolveBaseUrl } from "../auth/resolve.js";
 
 export function registerMarketplaceCommands(program: Command): void {
 	const marketplace = program
@@ -31,7 +31,14 @@ export function registerMarketplaceCommands(program: Command): void {
 					search: o.search,
 					sort: o.sort,
 				});
-				output(result, o, ["id", "name", "category", "commission_type", "commission_rate", "cookie_lifetime"]);
+				output(result, o, [
+					"id",
+					"name",
+					"category",
+					"commission_type",
+					"commission_rate",
+					"cookie_lifetime",
+				]);
 			} catch (err) {
 				handleError(err, o.json);
 			}
