@@ -3,10 +3,7 @@ const NO_COLOR = process.env.NO_COLOR !== undefined || process.argv.includes("--
 const dim = (s: string) => (NO_COLOR ? s : `\x1b[2m${s}\x1b[0m`);
 const bold = (s: string) => (NO_COLOR ? s : `\x1b[1m${s}\x1b[0m`);
 
-export function formatTable(
-	data: Record<string, unknown>[],
-	columns?: string[],
-): string {
+export function formatTable(data: Record<string, unknown>[], columns?: string[]): string {
 	if (data.length === 0) return "No results found.";
 
 	const cols = columns ?? Object.keys(data[0]);
@@ -25,23 +22,29 @@ export function formatTable(
 	}
 
 	// Header
-	const header = cols.map((col) => {
-		const label = col.toUpperCase().replace(/_/g, " ");
-		return bold(label.padEnd(widths[col]));
-	}).join("  ");
+	const header = cols
+		.map((col) => {
+			const label = col.toUpperCase().replace(/_/g, " ");
+			return bold(label.padEnd(widths[col]));
+		})
+		.join("  ");
 
 	// Rows
 	const rows = data.map((row) =>
-		cols.map((col) => {
-			const val = formatValue(row[col]);
-			const truncated = val.length > 40 ? `${val.slice(0, 37)}...` : val;
-			return truncated.padEnd(widths[col]);
-		}).join("  "),
+		cols
+			.map((col) => {
+				const val = formatValue(row[col]);
+				const truncated = val.length > 40 ? `${val.slice(0, 37)}...` : val;
+				return truncated.padEnd(widths[col]);
+			})
+			.join("  "),
+	);
+	const tableWidth = cols.reduce(
+		(total, col) => total + widths[col],
+		Math.max(0, cols.length - 1) * 2,
 	);
 
-	return [header, dim("─".repeat(header.replace(/\x1b\[[0-9;]*m/g, "").length)), ...rows].join(
-		"\n",
-	);
+	return [header, dim("─".repeat(tableWidth)), ...rows].join("\n");
 }
 
 function formatValue(val: unknown): string {

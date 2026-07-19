@@ -1,6 +1,6 @@
-import { describe, it, expect } from "vitest";
-import { formatTable, formatSingle } from "../output/table.js";
+import { describe, expect, it } from "vitest";
 import { formatJson } from "../output/json.js";
+import { formatSingle, formatTable } from "../output/table.js";
 
 describe("output/table", () => {
 	it("returns message for empty data", () => {
@@ -21,6 +21,13 @@ describe("output/table", () => {
 		expect(result).toContain("Alice");
 		expect(result).toContain("aff_2");
 		expect(result).toContain("Bob");
+	});
+
+	it("matches the separator width to the visible table width", () => {
+		const result = formatTable([{ short: "x", longer: "y" }]);
+		const separator = result.split("\n")[1];
+
+		expect([...separator].filter((character) => character === "─")).toHaveLength(13);
 	});
 
 	it("respects column selection", () => {

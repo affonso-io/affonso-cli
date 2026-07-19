@@ -36,7 +36,14 @@ export function registerAffiliateCommands(program: Command): void {
 					dateFrom: o.dateFrom,
 					dateTo: o.dateTo,
 				});
-				output(result, o, ["id", "name", "email", "partnership_status", "tracking_id", "created_at"]);
+				output(result, o, [
+					"id",
+					"name",
+					"email",
+					"partnership_status",
+					"tracking_id",
+					"created_at",
+				]);
 			} catch (err) {
 				handleError(err, o.json);
 			}

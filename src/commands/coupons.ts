@@ -30,7 +30,15 @@ export function registerCouponCommands(program: Command): void {
 					expand: o.expand,
 					sort: o.sort,
 				});
-				output(result, o, ["id", "affiliate_id", "code", "discount_type", "discount_value", "duration", "created_at"]);
+				output(result, o, [
+					"id",
+					"affiliate_id",
+					"code",
+					"discount_type",
+					"discount_value",
+					"duration",
+					"created_at",
+				]);
 			} catch (err) {
 				handleError(err, o.json);
 			}

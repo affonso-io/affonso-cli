@@ -12,7 +12,10 @@ export function registerPayoutCommands(program: Command): void {
 		.description("List payouts")
 		.option("--limit <n>", "Items per page", "50")
 		.option("--page <n>", "Page number", "1")
-		.option("--status <status>", "Filter by status (pending, processing, completed, failed, cancelled)")
+		.option(
+			"--status <status>",
+			"Filter by status (pending, processing, completed, failed, cancelled)",
+		)
 		.option("--affiliate-id <id>", "Filter by affiliate ID")
 		.option("--sort <field:dir>", "Sort")
 		.option("--date-from <date>", "Filter from date")
@@ -30,7 +33,14 @@ export function registerPayoutCommands(program: Command): void {
 					dateFrom: o.dateFrom,
 					dateTo: o.dateTo,
 				});
-				output(result, o, ["id", "affiliate_id", "amount", "status", "payment_method", "created_at"]);
+				output(result, o, [
+					"id",
+					"affiliate_id",
+					"amount",
+					"status",
+					"payment_method",
+					"created_at",
+				]);
 			} catch (err) {
 				handleError(err, o.json);
 			}

@@ -1,7 +1,7 @@
 import { Affonso } from "@affonso/sdk";
+import { refreshToken } from "../auth/oauth.js";
 import { resolveAuth, resolveBaseUrl } from "../auth/resolve.js";
 import { loadAuth } from "../auth/storage.js";
-import { refreshToken } from "../auth/oauth.js";
 
 interface ClientOpts {
 	apiKey?: string;
@@ -20,7 +20,9 @@ export async function getClient(opts: ClientOpts): Promise<Affonso> {
 			if (refreshed) {
 				auth = resolveAuth(opts.apiKey);
 			} else {
-				console.error("Error: Session expired and token refresh failed. Run `affonso login` to re-authenticate.");
+				console.error(
+					"Error: Session expired and token refresh failed. Run `affonso login` to re-authenticate.",
+				);
 				process.exit(1);
 			}
 		}
