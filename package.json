@@ -1,15 +1,16 @@
 {
   "name": "@affonso/cli",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Command line interface for the Affonso affiliate marketing platform",
   "bin": {
-    "affonso": "./dist/index.js"
+    "affonso": "dist/index.js"
   },
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "tsup",
+    "prepack": "npm run build -- --silent",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:package": "npm run build && node scripts/smoke-package.mjs",

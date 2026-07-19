@@ -19,7 +19,7 @@ function run(command, args, cwd = root) {
 
 try {
 	const packResult = JSON.parse(
-		run("npm", ["pack", "--json", "--pack-destination", packDirectory]),
+		run("npm", ["pack", "--json", "--silent", "--pack-destination", packDirectory]),
 	);
 	const tarball = path.join(packDirectory, packResult[0].filename);
 
