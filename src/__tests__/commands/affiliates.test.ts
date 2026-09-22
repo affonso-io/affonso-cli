@@ -152,8 +152,10 @@ describe("affiliates commands", () => {
 			"Bob",
 			"--email",
 			"bob@test.com",
-			"--program-id",
-			"prog_1",
+			"--status",
+			"pending",
+			"--metadata-json",
+			'{"source":"cli"}',
 			"--json",
 		]);
 
@@ -161,7 +163,8 @@ describe("affiliates commands", () => {
 			expect.objectContaining({
 				name: "Bob",
 				email: "bob@test.com",
-				program_id: "prog_1",
+				status: "pending",
+				metadata: { source: "cli" },
 			}),
 		);
 	});

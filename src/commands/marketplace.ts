@@ -16,8 +16,6 @@ export function registerMarketplaceCommands(program: Command): void {
 		.option("--limit <n>", "Items per page", "50")
 		.option("--page <n>", "Page number", "1")
 		.option("--category <cat>", "Filter by category")
-		.option("--search <query>", "Search programs")
-		.option("--sort <field:dir>", "Sort")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
@@ -28,16 +26,14 @@ export function registerMarketplaceCommands(program: Command): void {
 					limit: Number(o.limit),
 					page: Number(o.page),
 					category: o.category,
-					search: o.search,
-					sort: o.sort,
 				});
 				output(result, o, [
 					"id",
 					"name",
-					"category",
-					"commission_type",
-					"commission_rate",
-					"cookie_lifetime",
+					"marketplace_joined_at",
+					"access_mode",
+					"currency",
+					"website_url",
 				]);
 			} catch (err) {
 				handleError(err, o.json);

@@ -72,14 +72,15 @@ export function registerCommissionCommands(program: Command): void {
 		.description("Create a commission")
 		.requiredOption("--referral-id <id>", "Referral ID")
 		.requiredOption("--sale-amount <n>", "Sale amount")
-		.requiredOption("--sale-amount-currency <code>", "Sale currency (e.g. USD)")
+		.option("--sale-amount-currency <code>", "Sale currency (defaults to program currency)")
 		.requiredOption("--commission-amount <n>", "Commission amount")
-		.requiredOption("--commission-currency <code>", "Commission currency")
+		.option("--commission-currency <code>", "Commission currency")
 		.option("--is-subscription", "Mark as subscription commission")
 		.option("--status <status>", "Commission status")
 		.option("--sales-status <status>", "Sales status")
 		.option("--payment-intent-id <id>", "Payment intent ID")
 		.option("--hold-period-days <n>", "Hold period in days")
+		.option("--created-at <date>", "Creation timestamp (ISO 8601)")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
@@ -95,6 +96,7 @@ export function registerCommissionCommands(program: Command): void {
 					sales_status: o.salesStatus,
 					payment_intent_id: o.paymentIntentId,
 					hold_period_days: o.holdPeriodDays ? Number(o.holdPeriodDays) : undefined,
+					created_at: o.createdAt,
 				});
 				output(result, o);
 			} catch (err) {

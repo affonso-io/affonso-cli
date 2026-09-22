@@ -33,5 +33,19 @@ export async function getClient(opts: ClientOpts): Promise<Affonso> {
 		process.exit(1);
 	}
 
-	return new Affonso(auth.apiKey, { baseUrl });
+	return new Affonso(auth.apiKey, {
+		baseUrl,
+		signingSecret: process.env.AFFONSO_SIGNING_SECRET,
+		sourceSigningSecrets: {
+			...(process.env.AFFONSO_CUSTOM_SOURCE_SIGNING_SECRET
+				? { custom: process.env.AFFONSO_CUSTOM_SOURCE_SIGNING_SECRET }
+				: {}),
+			...(process.env.AFFONSO_SEGMENT_SIGNING_SECRET
+				? {
+						segment: process.env.AFFONSO_SEGMENT_SIGNING_SECRET,
+						segment_webhook: process.env.AFFONSO_SEGMENT_SIGNING_SECRET,
+					}
+				: {}),
+		},
+	});
 }

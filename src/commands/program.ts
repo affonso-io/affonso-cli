@@ -1,8 +1,28 @@
+import type {
+	CreativeCreateParams,
+	FraudRulesUpdateParams,
+	GroupUpdateParams,
+	NotificationUpdateParams,
+	PaymentTermsUpdateParams,
+	PortalSettingsUpdateParams,
+	ProgramSettingsUpdateParams,
+	RestrictionsUpdateParams,
+	TrackingSettingsUpdateParams,
+} from "@affonso/sdk";
 import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
 import { opts } from "../lib/opts.js";
+import { commaSeparated, parseJson, parseJsonObject } from "../lib/parse.js";
 import { output, outputSuccess } from "../output/format.js";
+
+type CurrentProgramSettingsUpdateParams = ProgramSettingsUpdateParams & {
+	customer_information_visibility?: "HIDDEN" | "NAME" | "EMAIL" | "NAME_AND_EMAIL";
+};
+
+type CurrentPaymentTermsUpdateParams = PaymentTermsUpdateParams & {
+	custom_payment_terms?: string | null;
+};
 
 export function registerProgramCommands(program: Command): void {
 	const prog = program.command("program").description("Manage program settings");
@@ -28,27 +48,31 @@ export function registerProgramCommands(program: Command): void {
 		.description("Update program settings")
 		.option("--name <name>", "Program name")
 		.option("--tagline <text>", "Tagline")
-		.option("--category <cat>", "Category")
 		.option("--description <text>", "Description")
 		.option("--website-url <url>", "Website URL")
 		.option("--logo-url <url>", "Logo URL")
 		.option("--access-mode <mode>", "Access mode: PUBLIC, PRIVATE, or INVITE")
 		.option("--affiliate-links-enabled", "Enable affiliate links")
 		.option("--no-affiliate-links-enabled", "Disable affiliate links")
+		.option(
+			"--customer-information-visibility <visibility>",
+			"Customer data visibility (HIDDEN, NAME, EMAIL, NAME_AND_EMAIL)",
+		)
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
+				const params: CurrentProgramSettingsUpdateParams = {};
 				if (o.name !== undefined) params.name = o.name;
 				if (o.tagline !== undefined) params.tagline = o.tagline;
-				if (o.category !== undefined) params.category = o.category;
 				if (o.description !== undefined) params.description = o.description;
 				if (o.websiteUrl !== undefined) params.website_url = o.websiteUrl;
 				if (o.logoUrl !== undefined) params.logo_url = o.logoUrl;
 				if (o.accessMode !== undefined) params.access_mode = o.accessMode;
 				if (o.affiliateLinksEnabled !== undefined)
 					params.affiliate_links_enabled = o.affiliateLinksEnabled;
+				if (o.customerInformationVisibility !== undefined)
+					params.customer_information_visibility = o.customerInformationVisibility;
 				const result = await client.program.update(params);
 				output(result, o);
 			} catch (err) {
@@ -92,32 +116,62 @@ function registerPaymentTerms(prog: Command): void {
 
 	pt.command("update")
 		.description("Update payment terms")
-		.option("--commission-type <type>", "Commission type (percentage, fixed)")
+		.option("--commission-type <type>", "Commission type (PERCENTAGE, FIXED, CREDITS)")
 		.option("--commission-rate <n>", "Commission rate")
-		.option("--commission-duration <dur>", "Duration (forever, once, first_month, custom)")
-		.option("--commission-duration-value <n>", "Custom duration value")
+		.option("--commission-duration <dur>", "Duration (lifetime, time_limited, payment_limited)")
+		.option("--commissions-limit <n>", "Commission duration limit")
+		.option("--commissions-hold-days <n>", "Commission hold period in days")
 		.option("--payment-threshold <n>", "Minimum payout threshold")
-		.option("--payment-frequency <freq>", "Payment frequency (monthly, biweekly, weekly)")
+		.option("--payment-frequency <freq>", "Payment frequency (weekly, monthly)")
+		.option("--payment-methods <methods>", "Payment methods (comma-separated)")
+		.option("--custom-payment-terms <text>", "Custom payment terms")
 		.option("--cookie-lifetime <days>", "Cookie lifetime in days")
 		.option("--auto-payout", "Enable auto payout")
 		.option("--no-auto-payout", "Disable auto payout")
-		.option("--invoice-required", "Require invoices")
-		.option("--no-invoice-required", "Don't require invoices")
+		.option(
+			"--invoice-rule <rule>",
+			"Invoice rule (NONE, OWNER_PROVIDES, AFFILIATE_PROVIDES, SELF_BILLING)",
+		)
+		.option("--invoice-prefix <prefix>", "Invoice number prefix")
+		.option("--require-tax-forms", "Require tax forms")
+		.option("--no-require-tax-forms", "Do not require tax forms")
+		.option("--owner-company-name <name>", "Owner company name")
+		.option("--owner-address-line-1 <value>", "Owner address line 1")
+		.option("--owner-address-line-2 <value>", "Owner address line 2")
+		.option("--owner-city <city>", "Owner city")
+		.option("--owner-postal-code <code>", "Owner postal code")
+		.option("--owner-country <code>", "Owner country code")
+		.option("--owner-vat-id <id>", "Owner VAT ID")
+		.option("--owner-vat-rate <n>", "Owner VAT rate")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
+				const params: CurrentPaymentTermsUpdateParams = {};
 				if (o.commissionType !== undefined) params.commission_type = o.commissionType;
 				if (o.commissionRate !== undefined) params.commission_rate = Number(o.commissionRate);
 				if (o.commissionDuration !== undefined) params.commission_duration = o.commissionDuration;
-				if (o.commissionDurationValue !== undefined)
-					params.commission_duration_value = Number(o.commissionDurationValue);
+				if (o.commissionsLimit !== undefined) params.commissions_limit = Number(o.commissionsLimit);
+				if (o.commissionsHoldDays !== undefined)
+					params.commissions_hold_days = Number(o.commissionsHoldDays);
 				if (o.paymentThreshold !== undefined) params.payment_threshold = Number(o.paymentThreshold);
 				if (o.paymentFrequency !== undefined) params.payment_frequency = o.paymentFrequency;
+				if (o.paymentMethods !== undefined)
+					params.payment_methods = commaSeparated(o.paymentMethods) ?? [];
+				if (o.customPaymentTerms !== undefined) params.custom_payment_terms = o.customPaymentTerms;
 				if (o.cookieLifetime !== undefined) params.cookie_lifetime = Number(o.cookieLifetime);
 				if (o.autoPayout !== undefined) params.auto_payout = o.autoPayout;
-				if (o.invoiceRequired !== undefined) params.invoice_required = o.invoiceRequired;
+				if (o.invoiceRule !== undefined) params.invoice_rule = o.invoiceRule;
+				if (o.invoicePrefix !== undefined) params.invoice_prefix = o.invoicePrefix;
+				if (o.requireTaxForms !== undefined) params.require_tax_forms = o.requireTaxForms;
+				if (o.ownerCompanyName !== undefined) params.owner_company_name = o.ownerCompanyName;
+				if (o.ownerAddressLine1 !== undefined) params.owner_address_line_1 = o.ownerAddressLine1;
+				if (o.ownerAddressLine2 !== undefined) params.owner_address_line_2 = o.ownerAddressLine2;
+				if (o.ownerCity !== undefined) params.owner_city = o.ownerCity;
+				if (o.ownerPostalCode !== undefined) params.owner_postal_code = o.ownerPostalCode;
+				if (o.ownerCountry !== undefined) params.owner_country = o.ownerCountry;
+				if (o.ownerVatId !== undefined) params.owner_vat_id = o.ownerVatId;
+				if (o.ownerVatRate !== undefined) params.owner_vat_rate = Number(o.ownerVatRate);
 				const result = await client.program.paymentTerms.update(params);
 				output(result, o);
 			} catch (err) {
@@ -148,21 +202,43 @@ function registerTracking(prog: Command): void {
 		.description("Update tracking settings")
 		.option("--default-referral-parameter <param>", "Default referral parameter")
 		.option("--enabled-referral-parameters <params>", "Enabled parameters (comma-separated)")
-		.option("--track-email", "Track email")
-		.option("--no-track-email", "Don't track email")
-		.option("--track-name", "Track name")
-		.option("--no-track-name", "Don't track name")
+		.option("--email-tracking-enabled", "Enable email tracking")
+		.option("--no-email-tracking-enabled", "Disable email tracking")
+		.option("--name-tracking-enabled", "Enable name tracking")
+		.option("--no-name-tracking-enabled", "Disable name tracking")
+		.option("--postbacks-enabled", "Enable postbacks")
+		.option("--no-postbacks-enabled", "Disable postbacks")
+		.option("--append-affonso-id-enabled", "Append the Affonso click ID")
+		.option("--no-append-affonso-id-enabled", "Do not append the Affonso click ID")
+		.option("--tracking-template-enabled", "Enable the tracking template")
+		.option("--no-tracking-template-enabled", "Disable the tracking template")
+		.option("--tracking-template-json <json|@file>", "Tracking template array as JSON or @file")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
-				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
+				const params: TrackingSettingsUpdateParams = {};
 				if (o.defaultReferralParameter !== undefined)
 					params.default_referral_parameter = o.defaultReferralParameter;
 				if (o.enabledReferralParameters !== undefined)
-					params.enabled_referral_parameters = (o.enabledReferralParameters as string).split(",");
-				if (o.trackEmail !== undefined) params.track_email = o.trackEmail;
-				if (o.trackName !== undefined) params.track_name = o.trackName;
+					params.enabled_referral_parameters = commaSeparated(o.enabledReferralParameters) ?? [];
+				if (o.emailTrackingEnabled !== undefined)
+					params.email_tracking_enabled = o.emailTrackingEnabled;
+				if (o.nameTrackingEnabled !== undefined)
+					params.name_tracking_enabled = o.nameTrackingEnabled;
+				if (o.postbacksEnabled !== undefined) params.postbacks_enabled = o.postbacksEnabled;
+				if (o.appendAffonsoIdEnabled !== undefined)
+					params.append_affonso_id_enabled = o.appendAffonsoIdEnabled;
+				if (o.trackingTemplateEnabled !== undefined)
+					params.tracking_template_enabled = o.trackingTemplateEnabled;
+				if (o.trackingTemplateJson !== undefined) {
+					const template = parseJson<
+						NonNullable<TrackingSettingsUpdateParams["tracking_template"]>
+					>(o.trackingTemplateJson, "--tracking-template-json");
+					if (!Array.isArray(template))
+						throw new Error("--tracking-template-json must contain a JSON array.");
+					params.tracking_template = template;
+				}
+				const client = await getClient(o);
 				const result = await client.program.tracking.update(params);
 				output(result, o);
 			} catch (err) {
@@ -199,39 +275,42 @@ function registerRestrictions(prog: Command): void {
 		.option("--no-organic-social", "Disallow organic social")
 		.option("--email-marketing", "Allow email marketing")
 		.option("--no-email-marketing", "Disallow email marketing")
-		.option("--paid-ads", "Allow paid ads")
-		.option("--no-paid-ads", "Disallow paid ads")
-		.option("--content-marketing", "Allow content marketing")
-		.option("--no-content-marketing", "Disallow content marketing")
-		.option("--coupon-sites", "Allow coupon sites")
-		.option("--no-coupon-sites", "Disallow coupon sites")
-		.option("--review-sites", "Allow review sites")
-		.option("--no-review-sites", "Disallow review sites")
-		.option("--incentivized-traffic", "Allow incentivized traffic")
-		.option("--no-incentivized-traffic", "Disallow incentivized traffic")
-		.option("--trademark-bidding", "Allow trademark bidding")
-		.option("--no-trademark-bidding", "Disallow trademark bidding")
+		.option("--mobile-traffic", "Allow mobile traffic")
+		.option("--no-mobile-traffic", "Disallow mobile traffic")
+		.option("--search-engine-marketing", "Allow search engine marketing")
+		.option("--no-search-engine-marketing", "Disallow search engine marketing")
+		.option("--organic-search", "Allow organic search")
+		.option("--no-organic-search", "Disallow organic search")
+		.option("--rebrokering", "Allow rebrokering")
+		.option("--no-rebrokering", "Disallow rebrokering")
+		.option("--incent", "Allow incentivized traffic")
+		.option("--no-incent", "Disallow incentivized traffic")
+		.option("--brand-bidding", "Allow brand bidding")
+		.option("--no-brand-bidding", "Disallow brand bidding")
+		.option("--additional-restrictions <text>", "Additional restriction text")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
-				const fieldMap: [string, string][] = [
+				const params: RestrictionsUpdateParams = {};
+				const fieldMap: Array<[string, keyof RestrictionsUpdateParams]> = [
 					["websites", "websites"],
 					["socialMarketing", "social_marketing"],
 					["organicSocial", "organic_social"],
 					["emailMarketing", "email_marketing"],
-					["paidAds", "paid_ads"],
-					["contentMarketing", "content_marketing"],
-					["couponSites", "coupon_sites"],
-					["reviewSites", "review_sites"],
-					["incentivizedTraffic", "incentivized_traffic"],
-					["trademarkBidding", "trademark_bidding"],
+					["mobileTraffic", "mobile_traffic"],
+					["searchEngineMarketing", "search_engine_marketing"],
+					["organicSearch", "organic_search"],
+					["rebrokering", "rebrokering"],
+					["incent", "incent"],
+					["brandBidding", "brand_bidding"],
 				];
 				for (const [camel, snake] of fieldMap) {
 					const val = o[camel];
-					if (val !== undefined) params[snake] = val;
+					if (val !== undefined) params[snake] = val as never;
 				}
+				if (o.additionalRestrictions !== undefined)
+					params.additional_restrictions = o.additionalRestrictions;
 				const result = await client.program.restrictions.update(params);
 				output(result, o);
 			} catch (err) {
@@ -260,20 +339,46 @@ function registerFraudRules(prog: Command): void {
 	fraud
 		.command("update")
 		.description("Update fraud rules")
-		.option("--self-referral <mode>", "Self-referral mode (off, detect, block)")
-		.option("--duplicate-ip <mode>", "Duplicate IP mode (off, detect, block)")
-		.option("--vpn-proxy <mode>", "VPN/Proxy mode (off, detect, block)")
-		.option("--suspicious-conversion <mode>", "Suspicious conversion mode (off, detect, block)")
+		.option("--self-referral-mode <mode>", "Self-referral mode (off, detect, block)")
+		.option("--cross-program-ban-mode <mode>", "Cross-program ban mode")
+		.option("--duplicate-payout-mode <mode>", "Duplicate payout mode")
+		.option("--suspicious-email-mode <mode>", "Suspicious email mode")
+		.option("--banned-referral-mode <mode>", "Banned referral mode")
+		.option("--paid-traffic-mode <mode>", "Paid traffic mode")
+		.option("--blocked-country-mode <mode>", "Blocked country mode")
+		.option("--banned-referral-config-json <json|@file>", "Banned referral config")
+		.option("--paid-traffic-config-json <json|@file>", "Paid traffic config")
+		.option("--blocked-country-config-json <json|@file>", "Blocked country config")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
+				const params: FraudRulesUpdateParams = {};
+				if (o.selfReferralMode !== undefined) params.self_referral_mode = o.selfReferralMode;
+				if (o.crossProgramBanMode !== undefined)
+					params.cross_program_ban_mode = o.crossProgramBanMode;
+				if (o.duplicatePayoutMode !== undefined)
+					params.duplicate_payout_mode = o.duplicatePayoutMode;
+				if (o.suspiciousEmailMode !== undefined)
+					params.suspicious_email_mode = o.suspiciousEmailMode;
+				if (o.bannedReferralMode !== undefined) params.banned_referral_mode = o.bannedReferralMode;
+				if (o.paidTrafficMode !== undefined) params.paid_traffic_mode = o.paidTrafficMode;
+				if (o.blockedCountryMode !== undefined) params.blocked_country_mode = o.blockedCountryMode;
+				if (o.bannedReferralConfigJson !== undefined)
+					params.banned_referral_config = parseJsonObject(
+						o.bannedReferralConfigJson,
+						"--banned-referral-config-json",
+					);
+				if (o.paidTrafficConfigJson !== undefined)
+					params.paid_traffic_config = parseJsonObject(
+						o.paidTrafficConfigJson,
+						"--paid-traffic-config-json",
+					);
+				if (o.blockedCountryConfigJson !== undefined)
+					params.blocked_country_config = parseJsonObject(
+						o.blockedCountryConfigJson,
+						"--blocked-country-config-json",
+					);
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
-				if (o.selfReferral !== undefined) params.self_referral = o.selfReferral;
-				if (o.duplicateIp !== undefined) params.duplicate_ip = o.duplicateIp;
-				if (o.vpnProxy !== undefined) params.vpn_proxy = o.vpnProxy;
-				if (o.suspiciousConversion !== undefined)
-					params.suspicious_conversion = o.suspiciousConversion;
 				const result = await client.program.fraudRules.update(params);
 				output(result, o);
 			} catch (err) {
@@ -302,31 +407,49 @@ function registerPortal(prog: Command): void {
 	portal
 		.command("update")
 		.description("Update portal settings")
+		.option("--single-program-portal", "Enable the single-program portal")
+		.option("--no-single-program-portal", "Disable the single-program portal")
+		.option("--hide-branding", "Hide Affonso branding")
+		.option("--no-hide-branding", "Show Affonso branding")
+		.option("--hide-details", "Hide program details")
+		.option("--no-hide-details", "Show program details")
 		.option("--primary-color <color>", "Primary color (hex)")
-		.option("--accent-color <color>", "Accent color (hex)")
-		.option("--logo-url <url>", "Logo URL")
-		.option("--favicon-url <url>", "Favicon URL")
-		.option("--custom-domain <domain>", "Custom domain")
-		.option("--terms-url <url>", "Terms URL")
-		.option("--privacy-url <url>", "Privacy URL")
-		.option("--onboarding-enabled", "Enable onboarding")
-		.option("--no-onboarding-enabled", "Disable onboarding")
-		.option("--resources-enabled", "Enable resources")
-		.option("--no-resources-enabled", "Disable resources")
+		.option("--secondary-color <color>", "Secondary color (hex)")
+		.option("--show-leaderboard", "Show the leaderboard")
+		.option("--no-show-leaderboard", "Hide the leaderboard")
+		.option("--terms-conditions-status", "Enable terms and conditions")
+		.option("--no-terms-conditions-status", "Disable terms and conditions")
+		.option("--terms-conditions-value <value>", "Terms text or URL")
+		.option("--privacy-policy-status", "Enable the privacy policy")
+		.option("--no-privacy-policy-status", "Disable the privacy policy")
+		.option("--privacy-policy-value <value>", "Privacy policy text or URL")
+		.option("--support-email-status", "Show the support email")
+		.option("--no-support-email-status", "Hide the support email")
+		.option("--support-email-value <email>", "Support email")
+		.option("--custom-texts-json <json|@file>", "Custom texts as JSON or @file")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
-				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
+				const params: PortalSettingsUpdateParams = {};
+				if (o.singleProgramPortal !== undefined)
+					params.single_program_portal = o.singleProgramPortal;
+				if (o.hideBranding !== undefined) params.hide_branding = o.hideBranding;
+				if (o.hideDetails !== undefined) params.hide_details = o.hideDetails;
 				if (o.primaryColor !== undefined) params.primary_color = o.primaryColor;
-				if (o.accentColor !== undefined) params.accent_color = o.accentColor;
-				if (o.logoUrl !== undefined) params.logo_url = o.logoUrl;
-				if (o.faviconUrl !== undefined) params.favicon_url = o.faviconUrl;
-				if (o.customDomain !== undefined) params.custom_domain = o.customDomain;
-				if (o.termsUrl !== undefined) params.terms_url = o.termsUrl;
-				if (o.privacyUrl !== undefined) params.privacy_url = o.privacyUrl;
-				if (o.onboardingEnabled !== undefined) params.onboarding_enabled = o.onboardingEnabled;
-				if (o.resourcesEnabled !== undefined) params.resources_enabled = o.resourcesEnabled;
+				if (o.secondaryColor !== undefined) params.secondary_color = o.secondaryColor;
+				if (o.showLeaderboard !== undefined) params.show_leaderboard = o.showLeaderboard;
+				if (o.termsConditionsStatus !== undefined)
+					params.terms_conditions_status = o.termsConditionsStatus;
+				if (o.termsConditionsValue !== undefined)
+					params.terms_conditions_value = o.termsConditionsValue;
+				if (o.privacyPolicyStatus !== undefined)
+					params.privacy_policy_status = o.privacyPolicyStatus;
+				if (o.privacyPolicyValue !== undefined) params.privacy_policy_value = o.privacyPolicyValue;
+				if (o.supportEmailStatus !== undefined) params.support_email_status = o.supportEmailStatus;
+				if (o.supportEmailValue !== undefined) params.support_email_value = o.supportEmailValue;
+				if (o.customTextsJson !== undefined)
+					params.custom_texts = parseJsonObject(o.customTextsJson, "--custom-texts-json");
+				const client = await getClient(o);
 				const result = await client.program.portal.update(params);
 				output(result, o);
 			} catch (err) {
@@ -346,7 +469,7 @@ function registerNotifications(prog: Command): void {
 			try {
 				const client = await getClient(o);
 				const result = await client.program.notifications.list();
-				output(result, o, ["id", "email_type", "subject", "enabled", "recipient"]);
+				output(result, o, ["email_type_id", "is_active", "custom_subject", "custom_body"]);
 			} catch (err) {
 				handleError(err, o.json);
 			}
@@ -355,16 +478,18 @@ function registerNotifications(prog: Command): void {
 	notifications
 		.command("update <id>")
 		.description("Update a notification setting")
-		.option("--subject <text>", "Email subject")
-		.option("--enabled", "Enable notification")
-		.option("--no-enabled", "Disable notification")
+		.option("--custom-subject <text>", "Custom email subject")
+		.option("--custom-body <text>", "Custom email body")
+		.option("--active", "Enable notification")
+		.option("--no-active", "Disable notification")
 		.action(async function (this: Command, id: string) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
-				if (o.subject !== undefined) params.subject = o.subject;
-				if (o.enabled !== undefined) params.enabled = o.enabled;
+				const params: NotificationUpdateParams = {};
+				if (o.customSubject !== undefined) params.custom_subject = o.customSubject;
+				if (o.customBody !== undefined) params.custom_body = o.customBody;
+				if (o.active !== undefined) params.is_active = o.active;
 				const result = await client.program.notifications.update(id, params);
 				output(result, o);
 			} catch (err) {
@@ -391,8 +516,8 @@ function registerGroups(prog: Command): void {
 					"id",
 					"name",
 					"description",
+					"custom_website_url",
 					"is_default",
-					"affiliate_count",
 					"created_at",
 				]);
 			} catch (err) {
@@ -422,6 +547,7 @@ function registerGroups(prog: Command): void {
 		.description("Create a group")
 		.requiredOption("--name <name>", "Group name")
 		.option("--description <text>", "Group description")
+		.option("--custom-website-url <url>", "Custom website URL")
 		.option("--is-default", "Set as default group")
 		.action(async function (this: Command) {
 			const o = opts(this);
@@ -430,6 +556,7 @@ function registerGroups(prog: Command): void {
 				const result = await client.program.groups.create({
 					name: o.name as string,
 					description: o.description as string | undefined,
+					custom_website_url: o.customWebsiteUrl as string | undefined,
 					is_default: o.isDefault as boolean | undefined,
 				});
 				output(result, o);
@@ -443,15 +570,17 @@ function registerGroups(prog: Command): void {
 		.description("Update a group")
 		.option("--name <name>", "Group name")
 		.option("--description <text>", "Group description")
+		.option("--custom-website-url <url>", "Custom website URL")
 		.option("--is-default", "Set as default group")
 		.option("--no-is-default", "Unset as default group")
 		.action(async function (this: Command, id: string) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
+				const params: GroupUpdateParams = {};
 				if (o.name !== undefined) params.name = o.name;
 				if (o.description !== undefined) params.description = o.description;
+				if (o.customWebsiteUrl !== undefined) params.custom_website_url = o.customWebsiteUrl;
 				if (o.isDefault !== undefined) params.is_default = o.isDefault;
 				const result = await client.program.groups.update(id, params);
 				output(result, o);
@@ -483,8 +612,7 @@ function registerCreatives(prog: Command): void {
 		.description("List creatives")
 		.option("--limit <n>", "Items per page", "50")
 		.option("--page <n>", "Page number", "1")
-		.option("--type <type>", "Filter by type")
-		.option("--search <query>", "Search by name")
+		.option("--category <category>", "Filter by category")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
@@ -492,10 +620,9 @@ function registerCreatives(prog: Command): void {
 				const result = await client.program.creatives.list({
 					limit: Number(o.limit),
 					page: Number(o.page),
-					type: o.type as string | undefined,
-					search: o.search as string | undefined,
+					category: o.category as string | undefined,
 				});
-				output(result, o, ["id", "name", "type", "url", "created_at"]);
+				output(result, o, ["id", "name", "category", "url", "created_at"]);
 			} catch (err) {
 				handleError(err, o.json);
 			}
@@ -518,26 +645,39 @@ function registerCreatives(prog: Command): void {
 	creatives
 		.command("create")
 		.description("Create a creative")
-		.requiredOption("--name <name>", "Creative name")
-		.requiredOption("--type <type>", "Creative type")
+		.option("--name <name>", "Creative name")
+		.option("--category <category>", "Creative category")
+		.option("--subcategory <subcategory>", "Creative subcategory")
 		.option("--description <text>", "Description")
 		.option("--url <url>", "URL")
-		.option("--file-url <url>", "File URL")
+		.option("--content <content>", "Text or embed content")
+		.option("--tags <tags>", "Tags (comma-separated)")
 		.option("--width <n>", "Width in pixels")
 		.option("--height <n>", "Height in pixels")
+		.option("--usage-notes <text>", "Usage notes")
+		.option("--restrictions <text>", "Usage restrictions")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const result = await client.program.creatives.create({
-					name: o.name as string,
-					type: o.type as string,
+				if ((o.width === undefined) !== (o.height === undefined))
+					throw new Error("--width and --height must be provided together.");
+				const params: CreativeCreateParams = {
+					name: o.name as string | undefined,
+					category: o.category,
+					subcategory: o.subcategory,
 					description: o.description as string | undefined,
 					url: o.url as string | undefined,
-					file_url: o.fileUrl as string | undefined,
-					width: o.width ? Number(o.width) : undefined,
-					height: o.height ? Number(o.height) : undefined,
-				});
+					content: o.content,
+					tags: commaSeparated(o.tags),
+					dimensions:
+						o.width !== undefined
+							? { width: Number(o.width), height: Number(o.height) }
+							: undefined,
+					usage_notes: o.usageNotes,
+					restrictions: o.restrictions,
+				};
+				const result = await client.program.creatives.create(params);
 				output(result, o);
 			} catch (err) {
 				handleError(err, o.json);
@@ -548,24 +688,34 @@ function registerCreatives(prog: Command): void {
 		.command("update <id>")
 		.description("Update a creative")
 		.option("--name <name>", "Creative name")
-		.option("--type <type>", "Creative type")
+		.option("--category <category>", "Creative category")
+		.option("--subcategory <subcategory>", "Creative subcategory")
 		.option("--description <text>", "Description")
 		.option("--url <url>", "URL")
-		.option("--file-url <url>", "File URL")
+		.option("--content <content>", "Text or embed content")
+		.option("--tags <tags>", "Tags (comma-separated)")
 		.option("--width <n>", "Width in pixels")
 		.option("--height <n>", "Height in pixels")
+		.option("--usage-notes <text>", "Usage notes")
+		.option("--restrictions <text>", "Usage restrictions")
 		.action(async function (this: Command, id: string) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
-				const params: Record<string, unknown> = {};
+				if ((o.width === undefined) !== (o.height === undefined))
+					throw new Error("--width and --height must be provided together.");
+				const params: CreativeCreateParams = {};
 				if (o.name !== undefined) params.name = o.name;
-				if (o.type !== undefined) params.type = o.type;
+				if (o.category !== undefined) params.category = o.category;
+				if (o.subcategory !== undefined) params.subcategory = o.subcategory;
 				if (o.description !== undefined) params.description = o.description;
 				if (o.url !== undefined) params.url = o.url;
-				if (o.fileUrl !== undefined) params.file_url = o.fileUrl;
-				if (o.width !== undefined) params.width = Number(o.width);
-				if (o.height !== undefined) params.height = Number(o.height);
+				if (o.content !== undefined) params.content = o.content;
+				if (o.tags !== undefined) params.tags = commaSeparated(o.tags);
+				if (o.width !== undefined)
+					params.dimensions = { width: Number(o.width), height: Number(o.height) };
+				if (o.usageNotes !== undefined) params.usage_notes = o.usageNotes;
+				if (o.restrictions !== undefined) params.restrictions = o.restrictions;
 				const result = await client.program.creatives.update(id, params);
 				output(result, o);
 			} catch (err) {

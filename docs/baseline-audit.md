@@ -23,3 +23,10 @@ Target: `origin/main`
 ## Remaining Dependencies
 
 Customer API synchronization must follow the PRD order: API/OpenAPI, SDK, corrected SDK release, then CLI. New CLI resource commands and contract changes remain blocked until the matching SDK operations are implemented and published; the CLI must not add raw HTTP workarounds.
+
+## 2026-09-22 Follow-up
+
+- `@affonso/sdk@1.0.2` now ships valid CommonJS, ESM, and declaration entry points, so the CLI no longer bundles the SDK as a packaging workaround.
+- The CLI is synchronized with API commit `4dee5f8` for all existing commands and all resources exposed by SDK 1.0.2.
+- The latest SDK now exposes onboarding forms and responses, affiliate portal tokens, signups, conversions and refunds, events, source adapters, and public tracking; matching CLI commands were added.
+- SDK 1.0.2 still does not expose the Customer API's affiliate analytics, Finder, program brand profile, or promotion URL resources. Those remain blocked at the SDK layer; no raw-HTTP CLI workaround was introduced.
