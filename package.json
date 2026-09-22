@@ -1,6 +1,6 @@
 {
   "name": "@affonso/cli",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Command line interface for the Affonso affiliate marketing platform",
   "bin": {
     "affonso": "dist/index.js"
