@@ -4,14 +4,20 @@ import { registerAffiliateCommands } from "./commands/affiliates.js";
 import { registerClickCommands } from "./commands/clicks.js";
 import { registerCommissionCommands } from "./commands/commissions.js";
 import { registerConfigCommands } from "./commands/config.js";
+import { registerConversionCommands } from "./commands/conversions.js";
 import { registerCouponCommands } from "./commands/coupons.js";
 import { registerEmbedTokenCommands } from "./commands/embed-tokens.js";
+import { registerEventCommands } from "./commands/events.js";
 import { registerLoginCommand } from "./commands/login.js";
 import { registerLogoutCommand } from "./commands/logout.js";
 import { registerMarketplaceCommands } from "./commands/marketplace.js";
+import { registerOnboardingFormCommands } from "./commands/onboarding-form.js";
 import { registerPayoutCommands } from "./commands/payouts.js";
 import { registerProgramCommands } from "./commands/program.js";
 import { registerReferralCommands } from "./commands/referrals.js";
+import { registerSignupCommands } from "./commands/signups.js";
+import { registerSourceCommands } from "./commands/sources.js";
+import { registerTrackingCommands } from "./commands/tracking.js";
 import { registerWhoamiCommand } from "./commands/whoami.js";
 
 export function createProgram(): Command {
@@ -37,11 +43,17 @@ export function createProgram(): Command {
 	registerReferralCommands(program);
 	registerClickCommands(program);
 	registerCommissionCommands(program);
+	registerConversionCommands(program);
+	registerEventCommands(program);
+	registerSignupCommands(program);
+	registerSourceCommands(program);
 	registerCouponCommands(program);
 	registerPayoutCommands(program);
 	registerProgramCommands(program);
 	registerMarketplaceCommands(program);
 	registerEmbedTokenCommands(program);
+	registerOnboardingFormCommands(program);
+	registerTrackingCommands(program);
 
 	return program;
 }

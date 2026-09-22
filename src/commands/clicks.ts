@@ -10,8 +10,8 @@ export function registerClickCommands(program: Command): void {
 	clicks
 		.command("create")
 		.description("Record a click event")
-		.requiredOption("--program-id <id>", "Program ID")
 		.requiredOption("--tracking-id <id>", "Tracking ID")
+		.option("--created-at <date>", "Creation timestamp (ISO 8601)")
 		.option("--referrer <url>", "Referrer URL")
 		.option("--utm-source <val>", "UTM source")
 		.option("--utm-medium <val>", "UTM medium")
@@ -25,13 +25,17 @@ export function registerClickCommands(program: Command): void {
 		.option("--sub5 <val>", "Sub-tracking parameter 5")
 		.option("--ip <ip>", "IP address")
 		.option("--user-agent <ua>", "User agent string")
+		.option("--gclid <id>", "Google click ID")
+		.option("--fbclid <id>", "Meta click ID")
+		.option("--msclkid <id>", "Microsoft click ID")
+		.option("--ttclid <id>", "TikTok click ID")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
 				const client = await getClient(o);
 				const result = await client.clicks.create({
-					programId: o.programId,
 					trackingId: o.trackingId,
+					createdAt: o.createdAt,
 					referrer: o.referrer,
 					utmSource: o.utmSource,
 					utmMedium: o.utmMedium,
@@ -45,6 +49,10 @@ export function registerClickCommands(program: Command): void {
 					sub5: o.sub5,
 					ip: o.ip,
 					userAgent: o.userAgent,
+					gclid: o.gclid,
+					fbclid: o.fbclid,
+					msclkid: o.msclkid,
+					ttclid: o.ttclid,
 				});
 				output(result, o);
 			} catch (err) {

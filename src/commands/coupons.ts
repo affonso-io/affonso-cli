@@ -13,7 +13,6 @@ export function registerCouponCommands(program: Command): void {
 		.option("--limit <n>", "Items per page", "50")
 		.option("--page <n>", "Page number", "1")
 		.option("--affiliate-id <id>", "Filter by affiliate ID")
-		.option("--program-id <id>", "Filter by program ID")
 		.option("--search <query>", "Search by code")
 		.option("--expand <fields>", "Expand fields")
 		.option("--sort <field:dir>", "Sort")
@@ -25,7 +24,6 @@ export function registerCouponCommands(program: Command): void {
 					limit: Number(o.limit),
 					page: Number(o.page),
 					affiliate_id: o.affiliateId,
-					program_id: o.programId,
 					search: o.search,
 					expand: o.expand,
 					sort: o.sort,
@@ -84,7 +82,10 @@ export function registerCouponCommands(program: Command): void {
 					duration: o.duration,
 					duration_in_months: o.durationInMonths ? Number(o.durationInMonths) : undefined,
 					currency: o.currency,
-					product_ids: o.productIds?.split(","),
+					product_ids: o.productIds
+						?.split(",")
+						.map((id: string) => id.trim())
+						.filter(Boolean),
 				});
 				output(result, o);
 			} catch (err) {

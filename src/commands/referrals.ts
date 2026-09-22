@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { getClient } from "../lib/client.js";
 import { handleError } from "../lib/errors.js";
 import { opts } from "../lib/opts.js";
+import { parseJsonObject } from "../lib/parse.js";
 import { output, outputSuccess } from "../output/format.js";
 
 export function registerReferralCommands(program: Command): void {
@@ -14,6 +15,7 @@ export function registerReferralCommands(program: Command): void {
 		.option("--starting-after <id>", "Cursor: fetch items after this ID")
 		.option("--ending-before <id>", "Cursor: fetch items before this ID")
 		.option("--affiliate-id <id>", "Filter by affiliate ID")
+		.option("--external-user-id <id>", "Filter by external user ID")
 		.option("--status <status>", "Filter by status")
 		.option("--order <dir>", "Order (asc, desc)")
 		.option("--expand <fields>", "Expand fields")
@@ -28,6 +30,7 @@ export function registerReferralCommands(program: Command): void {
 					starting_after: o.startingAfter,
 					ending_before: o.endingBefore,
 					affiliate_id: o.affiliateId,
+					external_user_id: o.externalUserId,
 					status: o.status,
 					order: o.order,
 					expand: o.expand,
@@ -69,9 +72,12 @@ export function registerReferralCommands(program: Command): void {
 		.option("--click-id <id>", "Click ID")
 		.option("--status <status>", "Initial status")
 		.option("--name <name>", "Referral name")
+		.option("--created-at <date>", "Creation timestamp (ISO 8601)")
+		.option("--metadata-json <json|@file>", "Metadata as JSON or @file")
 		.action(async function (this: Command) {
 			const o = opts(this);
 			try {
+				const metadata = parseJsonObject(o.metadataJson, "--metadata-json");
 				const client = await getClient(o);
 				const result = await client.referrals.create({
 					email: o.email,
@@ -81,6 +87,8 @@ export function registerReferralCommands(program: Command): void {
 					click_id: o.clickId,
 					status: o.status,
 					name: o.name,
+					created_at: o.createdAt,
+					metadata,
 				});
 				output(result, o);
 			} catch (err) {
@@ -96,16 +104,19 @@ export function registerReferralCommands(program: Command): void {
 		.option("--subscription-id <id>", "Subscription ID")
 		.option("--customer-id <id>", "Customer ID")
 		.option("--name <name>", "Referral name")
+		.option("--metadata-json <json|@file>", "Metadata as JSON or @file")
 		.action(async function (this: Command, id: string) {
 			const o = opts(this);
 			try {
-				const client = await getClient(o);
 				const params: Record<string, unknown> = {};
 				if (o.email !== undefined) params.email = o.email;
 				if (o.status !== undefined) params.status = o.status;
 				if (o.subscriptionId !== undefined) params.subscription_id = o.subscriptionId;
 				if (o.customerId !== undefined) params.customer_id = o.customerId;
 				if (o.name !== undefined) params.name = o.name;
+				if (o.metadataJson !== undefined)
+					params.metadata = parseJsonObject(o.metadataJson, "--metadata-json");
+				const client = await getClient(o);
 				const result = await client.referrals.update(id, params);
 				output(result, o);
 			} catch (err) {

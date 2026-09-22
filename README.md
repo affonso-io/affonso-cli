@@ -79,18 +79,21 @@ affonso <command> <subcommand> [options]
 ```bash
 affonso affiliates list [--status pending|approved|rejected] [--search <query>] [--limit <n>] [--page <n>]
 affonso affiliates get <id>
-affonso affiliates create --name <name> --email <email> --program-id <id>
-affonso affiliates update <id> [--name <name>] [--status <status>] [--email <email>]
+affonso affiliates create --name <name> --email <email> [--status pending|approved|rejected] [--metadata-json <json|@file>]
+affonso affiliates update <id> [--name <name>] [--status <status>] [--invoice-details-json <json|@file>]
+affonso affiliates onboarding-responses get <id>
+affonso affiliates onboarding-responses submit <id> --responses-json <json|@file> [--mark-complete]
+affonso affiliates portal-token <id>
 affonso affiliates delete <id>
 ```
 
 #### Referrals
 
 ```bash
-affonso referrals list [--affiliate-id <id>] [--status <status>] [--limit <n>]
+affonso referrals list [--affiliate-id <id>] [--external-user-id <id>] [--status <status>] [--limit <n>]
 affonso referrals get <id>
-affonso referrals create --email <email> --affiliate-id <id>
-affonso referrals update <id> [--status <status>] [--email <email>]
+affonso referrals create --email <email> --affiliate-id <id> [--metadata-json <json|@file>]
+affonso referrals update <id> [--status <status>] [--email <email>] [--metadata-json <json|@file>]
 affonso referrals delete <id>
 ```
 
@@ -99,7 +102,7 @@ affonso referrals delete <id>
 ```bash
 affonso commissions list [--status <status>] [--affiliate-id <id>] [--limit <n>] [--page <n>]
 affonso commissions get <id>
-affonso commissions create --referral-id <id> --sale-amount <n> --sale-amount-currency <code> --commission-amount <n> --commission-currency <code>
+affonso commissions create --referral-id <id> --sale-amount <n> --commission-amount <n> [--sale-amount-currency <code>] [--commission-currency <code>]
 affonso commissions update <id> [--status <status>] [--sale-amount <n>]
 affonso commissions delete <id>
 ```
@@ -124,20 +127,48 @@ affonso payouts update <id> --status <status>
 #### Clicks
 
 ```bash
-affonso clicks create --program-id <id> --tracking-id <id> [--referrer <url>] [--utm-source <val>]
+affonso clicks create --tracking-id <id> [--created-at <date>] [--gclid <id>] [--fbclid <id>]
 ```
 
 #### Embed tokens
 
 ```bash
-affonso embed-tokens create [--affiliate-id <id>] [--email <email>]
+affonso embed-tokens create --email <email> [--name <name>] [--group-id <id>] [--external-user-id <id>]
+```
+
+#### Onboarding forms
+
+```bash
+affonso onboarding-form get
+affonso onboarding-form create --name <name> --questions-json <json|@file>
+affonso onboarding-form update [--name <name>] [--questions-json <json|@file>]
+affonso onboarding-form delete
+```
+
+#### Server-side events
+
+Conversions and generic events are signed with `AFFONSO_SIGNING_SECRET`. Source adapters use
+`AFFONSO_CUSTOM_SOURCE_SIGNING_SECRET` or `AFFONSO_SEGMENT_SIGNING_SECRET`.
+
+```bash
+affonso signups create --click-id <id> [--email <email>] [--external-user-id <id>]
+affonso conversions create --sale-amount <n> --external-event-id <id> [--referral-id <id>]
+affonso conversions refund <id> [--amount <n>] [--reason <text>]
+affonso events create --event-name <name> [--event-type conversion|lead|trial|milestone]
+affonso sources ingest custom --payload-json <json|@file>
+```
+
+#### Public tracking
+
+```bash
+affonso tracking track --program-id <id> [--tracking-id <id>] [--utm-source <value>]
 ```
 
 #### Program settings
 
 ```bash
 affonso program get
-affonso program update [--name <name>] [--auto-approve] [--no-auto-approve]
+affonso program update [--name <name>] [--access-mode PUBLIC|PRIVATE|INVITE]
 
 # Sub-resources
 affonso program payment-terms get|update
@@ -153,7 +184,7 @@ affonso program creatives list|get <id>|create|update <id>|delete <id>
 #### Marketplace (public, no auth required)
 
 ```bash
-affonso marketplace list [--category <cat>] [--search <query>]
+affonso marketplace list [--category <cat>]
 affonso marketplace get <id>
 ```
 
@@ -174,6 +205,8 @@ affonso affiliates get aff_123 --json
 ```
 
 This is especially useful for AI agents that need to parse and act on the data programmatically.
+Options ending in `--*-json` accept either inline JSON or `@path/to/file.json`. Invalid JSON is
+rejected before an API request is made.
 
 ## Use with AI agents
 
